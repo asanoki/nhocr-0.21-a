@@ -1,0 +1,33 @@
+#!/bin/bash
+#NHOCR_DICCODES=etl9b1:etl9b2:etl9b3:etl9b4:etl9b5:etl9b6:etl9b7:etl9b8:etl9b9:etl9b10:jpn
+NHOCR_DICCODES=jpn
+#NHOCR_DICCODES=font-1:font-2:font-3:font-4:font-5:font-6:etl9b1:etl9b2:etl9b3:etl9b4:etl9b5:etl9b6:etl9b7:etl9b8:etl9b9:etl9b10:jpn
+#HOCR_DICCODES=font-1:font-2:font-3:font-4:font-5:font-6
+#NHOCR_DICCODES=jpn
+#:etl9b2:etl9b3:etl9b4
+#etl9b
+export NHOCR_DICCODES
+
+#for n in fs.pgm hello.pgm ; do
+#echo -n "$n: "
+#NHOCR_DICDIR=../dic ../nhocr/nhocr -line -o - -top 5 $n
+#done
+#
+#echo 
+
+for n in cat-1.pgm ; do
+echo -n "$n: "
+export NHOCR_DICDIR=../dic
+time ../nhocr/nhocr -line -o - -top 5 -gramd $n
+#valgrind --tool=callgrind ../nhocr/nhocr -line -o - -top 5 -gramd $n
+time ../nhocr/nhocr -line -o - -top 5 $n
+done
+
+exit
+
+echo 
+
+for n in tohoku3.pgm ; do
+echo "$n: "
+NHOCR_DICDIR=../dic ../nhocr/nhocr -mchar -o - -top 50 $n
+done
