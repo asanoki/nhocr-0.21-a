@@ -485,8 +485,9 @@ int RecBase :: recognizeMultiEuclidean(FeatureVector& charvec, int gHint, CharCo
 		ref_id = cclist[resultTable[i].id].ref_id;
 		if ( ref_id == -1 )
 			ref_id = resultTable[i].id;
-//		counts[ref_id] += (1.0 / (1.0 + resultTable[i].dist) / cclist[ref_id].group_size));
-		counts[ref_id] += 1.0 / resultTable[i].dist;/* / pow(cclist[ref_id].group_size, 0.5);*/
+		counts[ref_id] += (1.0 / (1.0 + resultTable[i].dist) / cclist[ref_id].group_size);
+//		counts[ref_id] += 1.0 / 1.0 + resultTable[i].dist;/* / pow(cclist[ref_id].group_size, 0.5);*/
+//		counts[ref_id] += 1.0 / pow(100.0, resultTable[i].dist);// / pow(cclist[ref_id].group_size, 0.5);*/
 //		printf("counts for %s = %f (group_size: %d)\n", cclist[resultTable[i].id].ccode, counts[ref_id], cclist[ref_id].group_size);
 	}
 	double *db_ids = new double[n_top];

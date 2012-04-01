@@ -1,0 +1,20 @@
+#!/usr/bin/php
+<?php
+	error_reporting(E_ALL);
+	if ($argc < 3) {
+		print "Use ./big-test.sh to perform evaluation.\n";
+		exit(0);
+	}
+	$str1 = file_get_contents($argv[2]);
+	$str2 = file_get_contents($argv[3]);
+	$length = max(strlen($str1), strlen($str2));
+	if ($argv[1] == "len") {
+		print strlen($str1) . "\n";
+		exit(0);
+	}
+	if ($argv[1] == "dist") {
+		$result = levenshtein($str1, $str2);
+		print $result . "\n";
+		exit(0);
+	}
+?>

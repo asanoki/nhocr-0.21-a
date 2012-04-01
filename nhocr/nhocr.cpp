@@ -549,6 +549,10 @@ int main(int ac,char *av[]){
 		NHrec.setdiccodes(getenv("NHOCR_DICCODES"));
 		debugprintf("NHOCR_DICCODES= %s\n",getenv("NHOCR_DICCODES"));
 	}
+	if ( getenv("NHOCR_GRAMDPORTFILE") ){
+		NHrec.setgramdportfile(getenv("NHOCR_GRAMDPORTFILE"));
+		debugprintf("NHOCR_GRAMDPORTFILE= %s\n",getenv("NHOCR_GRAMDPORTFILE"));
+	}
 
 	if ( NHrec.open() ){
 		return(2);

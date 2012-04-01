@@ -7,6 +7,8 @@ NHOCR_DICCODES=jpn
 #:etl9b2:etl9b3:etl9b4
 #etl9b
 export NHOCR_DICCODES
+export NHOCR_DICDIR=../dic
+export NHOCR_GRAMDPORTFILE=/tmp/.gramd
 
 #for n in fs.pgm hello.pgm ; do
 #echo -n "$n: "
@@ -15,12 +17,11 @@ export NHOCR_DICCODES
 #
 #echo 
 
-for n in cat-1.pgm ; do
-echo -n "$n: "
-export NHOCR_DICDIR=../dic
-time ../nhocr/nhocr -line -o - -top 5 -gramd $n
-#valgrind --tool=callgrind ../nhocr/nhocr -line -o - -top 5 -gramd $n
-time ../nhocr/nhocr -line -o - -top 5 $n
+for n in gen-1.pgm ; do
+    echo -n "$n: "
+    time ../nhocr/nhocr -line -o - -top 5 -gramd $n
+    echo -n "$n: "
+    time ../nhocr/nhocr -line -o - -top 5 $n
 done
 
 exit

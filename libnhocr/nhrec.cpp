@@ -76,6 +76,9 @@ NHrec :: NHrec(){
 	cctablefile = 0;	// default to using diccodes
 	dicfile = 0;		// default to using diccodes
 	debug = 0;
+#ifdef HAVE_LIBGRAMDCLIENT
+	gramd_handle = 0;
+#endif
 }
 
 
@@ -236,10 +239,10 @@ int NHrec :: open(){
 	}
 	
 #ifdef HAVE_LIBGRAMDCLIENT
+	gramd_handle = 0;
 	if (gramd_enabled) {
-		gramdDebugMode(2);
-		gramd_handle = 0;
-		if (!(gramd_handle = gramdOpen("127.0.0.1", 45000))) {
+		gramdDebugMode(0);
+		if (!(gramd_handle = gramdOpenWithFile(gramdportfile, "127.0.0.1"))) {
 			fprintf(stderr,"libnhocr: Failed to connect to gramd via libgramd-client.\nIs the daemon running?\n");
 			if ( cclist ){ delete []cclist;  cclist = 0; }
 			delete []fname;
@@ -285,7 +288,8 @@ int NHrec :: rec_gramd_add(RecResultItem *list) {
 	gramdAddSection(gramd_handle);
 	int n;
 	if (!list) {
-//		gramdAddCandidate(gramd_handle, " ", 1.0);
+		// TODO: No support for fake spaces, yet.
+		// gramdAddCandidate(gramd_handle, " ", 1.0);
 		return 1;
 	}
 	double dist_sum = 0.0;
@@ -295,7 +299,7 @@ int NHrec :: rec_gramd_add(RecResultItem *list) {
 		  || Rec.resultTable[n].id < 0 ){
 			break;
 		}
-		dist_sum += pow(100.0, -Rec.resultTable[n].dist);
+		// dist_sum += pow(1000.0, -Rec.resultTable[n].dist);
 		boost_sum += pow(1.5, -(n + 1));
 	}
 	for ( n=0 ; n<n_top ; n++ ){
@@ -304,14 +308,13 @@ int NHrec :: rec_gramd_add(RecResultItem *list) {
 			break;
 		}
 		// Converting distance to probability.
-		double dist_prob = pow(100.0, -Rec.resultTable[n].dist) / dist_sum;
+		double dist_prob = pow(1000.0, -Rec.resultTable[n].dist) / dist_sum;
 		double boost_prob = pow(1.5, -(n + 1)) / boost_sum;
-		double prob = dist_prob;//0.5 * dist_prob + 0.5 * boost_prob;
-		//pow(1.5, -(n + 1)); //100.0 / (1.0 + 100.0 * Rec.resultTable[n].dist);
+		double prob = boost_prob;//0.5 * dist_prob + 0.5 * boost_prob;
+		// fprintf(stderr, "Adding candidate %s\t\tP=%f\n", cclist[Rec.resultTable[n].id].ccode, prob);
 		gramdAddCandidate(gramd_handle, cclist[Rec.resultTable[n].id].ccode, prob);
-		printf("Adding %s with P=%f\n", cclist[Rec.resultTable[n].id].ccode, prob);
 	}
-	printf("\n");
+	// fprintf(stderr, "\n");
 	return 1;
 #else
 	fprintf(stderr,"libnhocr: Not compiled with libgramd-client library. Language post-processing is unavailable.");
@@ -383,6 +386,7 @@ int NHrec :: rec_character(SIPImage *image, CharBox *cb, RecResultItem *resultTa
 	}
 #endif
 
+	int result_cid = -1;
 	for ( cid = -1, n=0 ; n<n_top ; n++ ){
 		if ( Rec.resultTable[n].id >= n_cat \
 		  || Rec.resultTable[n].id < 0 ){
@@ -399,13 +403,18 @@ int NHrec :: rec_character(SIPImage *image, CharBox *cb, RecResultItem *resultTa
 			continue;
 		}
 
-		if ( (cclist[Rec.resultTable[n].id].sizehint & SizeHint_Mask) == SizeHint_None ){
-			cid = n;  break;
-		}
-		if ( ((cclist[Rec.resultTable[n].id].sizehint & SizeHint_Mask) & cb->sizehint) != 0 ){
-			cid = n;  break;
+		if (result_cid == -1) {
+			if ( (cclist[Rec.resultTable[n].id].sizehint & SizeHint_Mask) == SizeHint_None ){
+				result_cid = n; // break;
+			}
+			if ( ((cclist[Rec.resultTable[n].id].sizehint & SizeHint_Mask) & cb->sizehint) != 0 ){
+				result_cid = n; // break;
+			}
 		}
 	}
+
+	if (result_cid == -1)
+		result_cid = cid;
 
 	if (resultTable != 0) {
 		memcpy((void *)resultTable, (void *)(Rec.resultTable), \
@@ -413,7 +422,7 @@ int NHrec :: rec_character(SIPImage *image, CharBox *cb, RecResultItem *resultTa
 	}
 
 	sip_DestroyImage(cnorm);
-	return(cid);
+	return(result_cid);
 }
 
 
